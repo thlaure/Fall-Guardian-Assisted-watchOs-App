@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Fall Guardian</string>
+    <key>CFBundleDisplayName</key>
+    <string>Fall Guardian</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.fallguardian.watch</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <!-- WatchKit companion app -->
+    <key>WKCompanionAppBundleIdentifier</key>
+    <string>com.fallguardian.app</string>
+
+    <!-- Background modes for extended runtime session -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>workout-processing</string>
+    </array>
+
+    <!-- Motion usage (accelerometer) -->
+    <key>NSMotionUsageDescription</key>
+    <string>Fall Guardian uses the accelerometer to detect falls and alert your family.</string>
+</dict>
+</plist>
