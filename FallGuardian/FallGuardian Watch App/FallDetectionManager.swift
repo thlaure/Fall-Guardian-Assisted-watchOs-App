@@ -11,6 +11,8 @@ class FallDetectionManager: NSObject {
     private let algorithm = FallAlgorithm()
     private var extendedSession: AnyObject? // WKExtendedRuntimeSession (weakly typed to avoid WatchKit import here)
 
+    var onFallDetected: (() -> Void)?
+
     private var lastFallMs: Double = 0
     private let cooldownMs: Double = 5_000
 
@@ -67,6 +69,7 @@ class FallDetectionManager: NSObject {
             lastFallMs = nowMs
             algorithm.reset()
             WatchSessionManager.shared.sendFallEvent()
+            onFallDetected?()
         }
     }
 }

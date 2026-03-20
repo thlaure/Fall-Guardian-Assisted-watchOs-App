@@ -16,6 +16,17 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
         WCSession.default.activate()
     }
 
+    /// Send a cancel alert message to the iPhone.
+    func sendCancelAlert() {
+        guard WCSession.default.activationState == .activated else { return }
+        let message: [String: Any] = ["event": "alert_cancelled"]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: nil)
+        } else {
+            WCSession.default.transferUserInfo(message)
+        }
+    }
+
     /// Send a fall event to the iPhone.
     func sendFallEvent() {
         guard WCSession.default.activationState == .activated else { return }
