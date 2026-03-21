@@ -29,6 +29,11 @@ class FallDetectionManager: NSObject {
 
     func start() {
         guard !motionManager.isAccelerometerActive else { return }
+
+        // Start WCSession before the accelerometer guard — communication with the
+        // phone is independent of sensor availability (e.g. works in the simulator).
+        WatchSessionManager.shared.startSession()
+
         guard motionManager.isAccelerometerAvailable else { return }
 
         loadThresholdsFromDefaults()
@@ -46,8 +51,6 @@ class FallDetectionManager: NSObject {
             guard let self = self, let data = data, error == nil else { return }
             self.process(data: data)
         }
-
-        WatchSessionManager.shared.startSession()
     }
 
     func stop() {
