@@ -93,6 +93,10 @@ class ContentViewModel {
 
     private var alertExpireTask: Task<Void, Never>?
 
+    deinit {
+        alertExpireTask?.cancel()
+    }
+
     func startIfNeeded() {
         if !FallDetectionManager.shared.isRunning {
             FallDetectionManager.shared.start()

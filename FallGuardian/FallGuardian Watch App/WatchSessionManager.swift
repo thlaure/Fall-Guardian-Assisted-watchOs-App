@@ -21,7 +21,10 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
         guard WCSession.default.activationState == .activated else { return }
         let message: [String: Any] = ["event": "alert_cancelled"]
         if WCSession.default.isReachable {
-            WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: nil)
+            WCSession.default.sendMessage(message, replyHandler: nil) { _ in
+                // Phone became unreachable mid-send — fall back to guaranteed delivery
+                WCSession.default.transferUserInfo(message)
+            }
         } else {
             WCSession.default.transferUserInfo(message)
         }
@@ -38,10 +41,10 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
         ]
 
         if WCSession.default.isReachable {
-            // Phone is reachable — send immediately with reply handler
-            WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: nil)
+            WCSession.default.sendMessage(message, replyHandler: nil) { _ in
+                WCSession.default.transferUserInfo(message)
+            }
         } else {
-            // Phone not reachable — use transferUserInfo for guaranteed delivery
             WCSession.default.transferUserInfo(message)
         }
     }
