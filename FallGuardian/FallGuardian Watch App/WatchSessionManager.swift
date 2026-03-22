@@ -78,15 +78,23 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
 
     // MARK: - Private
 
+    var onAlertCancelled: (() -> Void)?
+
     private func handleMessage(_ message: [String: Any]) {
-        guard message["event"] as? String == "set_thresholds",
-              let thresholds = message["thresholds"] as? [String: Any] else { return }
-        let d = UserDefaults.standard
-        if let v = thresholds["thresh_freefall"] as? Double { d.set(v, forKey: "thresh_freefall") }
-        if let v = thresholds["thresh_impact"]   as? Double { d.set(v, forKey: "thresh_impact") }
-        if let v = thresholds["thresh_tilt"]     as? Double { d.set(v, forKey: "thresh_tilt") }
-        if let v = thresholds["thresh_freefall_ms"] as? Int { d.set(Double(v), forKey: "thresh_freefall_ms") }
-        // FallDetectionManager observes UserDefaults.didChangeNotification and reloads automatically
-        d.synchronize()
+        switch message["event"] as? String {
+        case "set_thresholds":
+            guard let thresholds = message["thresholds"] as? [String: Any] else { return }
+            let d = UserDefaults.standard
+            if let v = thresholds["thresh_freefall"] as? Double { d.set(v, forKey: "thresh_freefall") }
+            if let v = thresholds["thresh_impact"]   as? Double { d.set(v, forKey: "thresh_impact") }
+            if let v = thresholds["thresh_tilt"]     as? Double { d.set(v, forKey: "thresh_tilt") }
+            if let v = thresholds["thresh_freefall_ms"] as? Int { d.set(Double(v), forKey: "thresh_freefall_ms") }
+            // FallDetectionManager observes UserDefaults.didChangeNotification and reloads automatically
+            d.synchronize()
+        case "alert_cancelled":
+            DispatchQueue.main.async { self.onAlertCancelled?() }
+        default:
+            break
+        }
     }
 }

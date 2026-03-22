@@ -104,6 +104,9 @@ class ContentViewModel {
         FallDetectionManager.shared.onFallDetected = { [weak self] in
             DispatchQueue.main.async { self?.alertDidFire() }
         }
+        WatchSessionManager.shared.onAlertCancelled = { [weak self] in
+            self?.cancelAlert()
+        }
     }
 
     func simulateFall() {
