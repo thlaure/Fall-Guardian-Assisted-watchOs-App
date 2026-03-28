@@ -20,6 +20,15 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
 
     /// Send a cancel alert message to the iPhone.
     func sendCancelAlert() {
+        // Simulator IPC: WCSession watch→phone is broken when the watchOS app is
+        // deployed via xcrun simctl (isReachable is always false).  Write a flag
+        // file that the iOS sim process polls — both are macOS apps sharing /tmp.
+        #if targetEnvironment(simulator)
+        try? "cancelled".write(
+            toFile: "/tmp/com.fallguardian.cancelFromWatch",
+            atomically: true, encoding: .utf8
+        )
+        #endif
         guard WCSession.default.activationState == .activated else {
             NSLog("[WCSession] sendCancelAlert: not activated")
             return
@@ -32,14 +41,22 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
         }
     }
 
-    /// Send a fall event to the iPhone.
-    func sendFallEvent() {
+    /// Send a fall event to the iPhone using the provided detection timestamp.
+    func sendFallEvent(timestamp: Int64) {
+        #if targetEnvironment(simulator)
+        // WCSession watch→phone is broken in the simulator when deployed via xcrun simctl.
+        // Write a flag file that the iOS simulator process polls — both share /tmp.
+        try? "\(timestamp)".write(
+            toFile: "/tmp/com.fallguardian.fallEvent",
+            atomically: true, encoding: .utf8
+        )
+        NSLog("[WCSession] sendFallEvent: wrote simulator IPC flag (timestamp=\(timestamp))")
+        #endif
         guard WCSession.default.activationState == .activated else {
             NSLog("[WCSession] sendFallEvent: not activated (state=\(WCSession.default.activationState.rawValue))")
             return
         }
 
-        let timestamp = Int(Date().timeIntervalSince1970 * 1000)
         let message: [String: Any] = ["event": "fall_detected", "timestamp": timestamp]
 
         NSLog("[WCSession] sendFallEvent: isReachable=\(WCSession.default.isReachable)")
@@ -67,9 +84,13 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
         stopPolling()
         pollTask = Task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 guard !Task.isCancelled else { return }
+                // In the simulator WCSession is never activated, but checkCancelledOnPhone()
+                // uses the /tmp flag file path which doesn't require an active session.
+                #if !targetEnvironment(simulator)
                 guard WCSession.default.activationState == .activated else { continue }
+                #endif
                 let cancelled = await checkCancelledOnPhone()
                 NSLog("[WCSession] poll: cancelled=\(cancelled)")
                 if cancelled {
