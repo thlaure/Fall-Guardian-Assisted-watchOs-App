@@ -150,6 +150,17 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
             atomically: true, encoding: .utf8
         )
         NSLog("[WCSession] sendFallEvent: wrote simulator IPC flag (timestamp=\(timestamp))")
+        // Post a Darwin system notification so the iOS sim app is woken immediately
+        // even when it is suspended in the background. The polling loop alone cannot
+        // fire while the iOS process is frozen; posting to the Darwin notification
+        // center triggers a kernel-level wakeup before the iOS app reads the flag file.
+        // CFNotificationCenterGetDarwinNotifyCenter() is available on all Apple platforms;
+        // it uses notify_post() internally but is exposed through CoreFoundation.
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName("com.fallguardian.fallEvent" as CFString),
+            nil, nil, true
+        )
         #endif
 
         guard WCSession.default.activationState == .activated else {
