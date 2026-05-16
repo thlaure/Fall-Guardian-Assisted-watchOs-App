@@ -187,10 +187,22 @@ class FallDetectionManager: NSObject {
     /// Wear OS app — they are the shared contract defined in CLAUDE.md.
     private func loadThresholdsFromDefaults() {
         let d = UserDefaults.standard
-        algorithm.freeFallThresholdG = d.object(forKey: "thresh_freefall")    != nil ? d.double(forKey: "thresh_freefall")    : 0.5
-        algorithm.impactThresholdG   = d.object(forKey: "thresh_impact")      != nil ? d.double(forKey: "thresh_impact")      : 2.5
-        algorithm.tiltThresholdDeg   = d.object(forKey: "thresh_tilt")        != nil ? d.double(forKey: "thresh_tilt")        : 45.0
-        algorithm.freeFallMinMs      = d.object(forKey: "thresh_freefall_ms") != nil ? d.double(forKey: "thresh_freefall_ms") : 80.0
+        algorithm.freeFallThresholdG = clampedDouble(d, key: "thresh_freefall", defaultValue: 0.5, range: 0.1...1.0)
+        algorithm.impactThresholdG   = clampedDouble(d, key: "thresh_impact", defaultValue: 2.5, range: 1.5...5.0)
+        algorithm.tiltThresholdDeg   = clampedDouble(d, key: "thresh_tilt", defaultValue: 45.0, range: 20.0...90.0)
+        algorithm.freeFallMinMs      = clampedDouble(d, key: "thresh_freefall_ms", defaultValue: 80.0, range: 40.0...200.0)
+    }
+
+    private func clampedDouble(
+        _ defaults: UserDefaults,
+        key: String,
+        defaultValue: Double,
+        range: ClosedRange<Double>
+    ) -> Double {
+        guard defaults.object(forKey: key) != nil else { return defaultValue }
+        let value = defaults.double(forKey: key)
+        guard value.isFinite else { return defaultValue }
+        return min(max(value, range.lowerBound), range.upperBound)
     }
 
     /// Called on every accelerometer tick (50 times per second).

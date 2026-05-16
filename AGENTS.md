@@ -18,6 +18,9 @@ Always:
 
 - keep watch-to-phone contracts aligned with the assisted app
 - keep Xcode build artifacts, user data, derived data, and local signing files out of Git
+- prefer readable, explicit code over clever Swift/watchOS platform tricks
+- add concise comments for watchOS concepts, sensors, extended runtime, WatchConnectivity, permissions, background delivery, and safety-critical alert behavior when they are not obvious to a non-mobile developer
+- keep automated line coverage at or above 90%; coverage must come from useful behavior, contract, edge-case, and regression tests, not shallow line execution
 - run relevant Xcode build/tests after Swift or project configuration changes when feasible
 
 Ask first:
@@ -36,5 +39,7 @@ Never:
 Common command shape:
 
 ```sh
-xcodebuild -project FallGuardian/FallGuardian.xcodeproj -scheme FallGuardian -destination 'platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)' test
+make check
 ```
+
+`make check` requires a compatible watchOS simulator/runtime for the configured destination.

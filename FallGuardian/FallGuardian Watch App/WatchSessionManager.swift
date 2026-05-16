@@ -357,10 +357,18 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
             // they are the shared contract listed in CLAUDE.md.
             guard let thresholds = message["thresholds"] as? [String: Any] else { return }
             let d = UserDefaults.standard
-            if let v = thresholds["thresh_freefall"]    as? Double { d.set(v,         forKey: "thresh_freefall") }
-            if let v = thresholds["thresh_impact"]      as? Double { d.set(v,         forKey: "thresh_impact") }
-            if let v = thresholds["thresh_tilt"]        as? Double { d.set(v,         forKey: "thresh_tilt") }
-            if let v = thresholds["thresh_freefall_ms"] as? Int    { d.set(Double(v), forKey: "thresh_freefall_ms") }
+            if let v = validDouble(thresholds["thresh_freefall"], range: 0.1...1.0) {
+                d.set(v, forKey: "thresh_freefall")
+            }
+            if let v = validDouble(thresholds["thresh_impact"], range: 1.5...5.0) {
+                d.set(v, forKey: "thresh_impact")
+            }
+            if let v = validDouble(thresholds["thresh_tilt"], range: 20.0...90.0) {
+                d.set(v, forKey: "thresh_tilt")
+            }
+            if let v = validDouble(thresholds["thresh_freefall_ms"], range: 40.0...200.0) {
+                d.set(v, forKey: "thresh_freefall_ms")
+            }
             // `synchronize()` forces an immediate write to disk.  Usually the OS does
             // this automatically but calling it explicitly ensures the value is
             // persisted before FallDetectionManager's observer fires.
@@ -376,5 +384,19 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
             // the phone app don't crash older watch app versions.
             break
         }
+    }
+
+    private func validDouble(_ rawValue: Any?, range: ClosedRange<Double>) -> Double? {
+        let value: Double?
+        if let doubleValue = rawValue as? Double {
+            value = doubleValue
+        } else if let intValue = rawValue as? Int {
+            value = Double(intValue)
+        } else {
+            value = nil
+        }
+
+        guard let value, value.isFinite, range.contains(value) else { return nil }
+        return value
     }
 }

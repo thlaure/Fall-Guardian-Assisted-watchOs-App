@@ -1,4 +1,4 @@
-.PHONY: help test build clean
+.PHONY: help analyze test build check clean
 
 .DEFAULT_GOAL := help
 
@@ -14,8 +14,13 @@ help: ## Show available commands
 test: ## Run watchOS tests on the configured simulator
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$(DESTINATION)" test
 
+analyze: ## Run Xcode static analyzer
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$(DESTINATION)" analyze
+
 build: ## Build the watchOS app on the configured simulator
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$(DESTINATION)" build
+
+check: analyze test build ## Run deterministic quality checks
 
 clean: ## Clean Xcode build artifacts
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" clean
