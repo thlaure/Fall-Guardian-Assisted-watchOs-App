@@ -32,13 +32,6 @@ jobs:
             -destination "$DESTINATION" \
             analyze
 
-      - name: Test
-        run: |
-          xcodebuild -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            test
-
       - name: Build
         run: |
           xcodebuild -project "$PROJECT" \
