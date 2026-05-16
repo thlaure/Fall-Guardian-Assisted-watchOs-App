@@ -10,7 +10,7 @@ on:
   workflow_dispatch: ~
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,18 +26,10 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Analyze
-        run: |
-          xcodebuild -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            analyze
+        run: make analyze
 
       - name: Build
-        run: |
-          xcodebuild -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            build
+        run: make build
 
   secret-scan:
     name: Secret Scan
